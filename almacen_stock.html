@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Feval Stock">
+<title>Feval Filtros · Stock</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2f4f7;
+    --surface: #ffffff;
+    --surface2: #eef1f5;
+    --border: #dce1e9;
+    --navy: #1a2e4a;
+    --navy2: #243d60;
+    --blue: #2e6da4;
+    --blue-light: #4a8fc2;
+    --accent: #c8a84b;
+    --text: #1a2e4a;
+    --muted: #6b7a8d;
+    --success: #2a7a4b;
+    --danger: #a83232;
+    --mono: 'Oswald', sans-serif;
+    --sans: 'Source Sans 3', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding-bottom: 80px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--navy);
+    padding: 48px 20px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+  }
+
+  .header-brand {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 14px;
+  }
+
+  .brand-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 36px;
+    height: 36px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+  }
+
+  .brand-name {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+
+  .brand-sub {
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .stock-badge {
+    background: var(--accent);
+    color: var(--navy);
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  .search-wrap {
+    position: relative;
+    padding-bottom: 14px;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-60%);
+    color: var(--muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  input[type="search"] {
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 11px 14px 11px 42px;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+  input:focus { border-color: var(--accent); background: rgba(255,255,255,0.15); }
+  input::placeholder { color: rgba(255,255,255,0.4); }
+
+  /* UPLOAD */
+  .upload-zone {
+    margin: 30px 20px;
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 50px 20px;
+    text-align: center;
+    background: var(--surface);
+  }
+
+  .upload-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+  .upload-title { font-family: var(--mono); font-size: 20px; font-weight: 600; color: var(--navy); margin-bottom: 8px; letter-spacing: 0.03em; }
+  .upload-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; line-height: 1.6; }
+
+  .btn-upload {
+    background: var(--blue);
+    color: #fff;
+    font-family: var(--mono);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 6px;
+    padding: 14px 32px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  #fileInput { display: none; }
+
+  /* FILTERS */
+  .filters {
+    padding: 14px 20px 4px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .filter-chip.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  /* STATS */
+  .stats-bar { display: flex; gap: 10px; padding: 14px 20px; }
+
+  .stat {
+    flex: 1;
+    background: var(--navy);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-val { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--accent); display: block; }
+  .stat-lbl { font-size: 10px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; display: block; }
+
+  /* LIST */
+  .list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+    border-left: 4px solid var(--blue);
+  }
+  .card:active { transform: scale(0.985); box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+
+  .hist-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.1s;
+    border-left: 4px solid var(--muted);
+    opacity: 0.85;
+  }
+  .hist-card:active { transform: scale(0.985); }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .mat {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .metros {
+    font-family: var(--mono);
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--success);
+  }
+  .metros span { font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  .venta-price {
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--blue);
+  }
+  .venta-price span { font-size: 10px; color: var(--muted); font-weight: 400; }
+
+  .baja-date {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .luz-val {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 8px;
+    letter-spacing: 0.02em;
+  }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .tag {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 8px;
+    border-radius: 3px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tag.proveedor {
+    color: var(--blue);
+    border-color: rgba(46,109,164,0.3);
+    background: rgba(46,109,164,0.08);
+  }
+
+  /* MODAL */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,20,35,0.75);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    align-items: flex-end;
+  }
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 16px 16px 0 0;
+    padding: 24px 20px 50px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    border-top: 4px solid var(--blue);
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+  .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+
+  .modal-header {
+    background: var(--navy);
+    margin: -24px -20px 20px;
+    padding: 20px;
+  }
+
+  .modal-mat { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+  .modal-luz { font-family: var(--mono); font-size: 32px; font-weight: 700; color: #fff; letter-spacing: 0.02em; line-height: 1; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+
+  .detail-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+  .detail-item.full { grid-column: 1 / -1; }
+
+  .detail-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 4px; display: block; font-family: var(--mono); }
+  .detail-val { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--navy); }
+  .detail-val.big { font-size: 22px; color: var(--success); }
+  .detail-val.price { font-size: 20px; color: var(--blue); }
+
+  .btn-close {
+    width: 100%;
+    background: var(--navy);
+    border: none;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 14px; }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 4px 20px 10px;
+  }
+
+  /* TAB BAR */
+  .tab-bar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--navy);
+    border-top: 3px solid var(--accent);
+    display: none;
+    z-index: 150;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .tab-bar.visible { display: flex; }
+
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0 8px;
+    cursor: pointer;
+    gap: 3px;
+    color: rgba(255,255,255,0.4);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.15s;
+  }
+  .tab.active { color: var(--accent); }
+  .tab-icon { font-size: 18px; }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 20px 12px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="brand-left">
+      <div class="brand-icon">⬡</div>
+      <div>
+        <div class="brand-name">FEVAL FILTROS</div>
+        <div class="brand-sub" id="headerSub">Gestión de stock</div>
+      </div>
+    </div>
+    <span class="stock-badge" id="totalBadge">—</span>
+  </div>
+  <div class="search-wrap" id="searchWrap" style="display:none">
+    <span class="search-icon">⌕</span>
+    <input type="search" id="searchInput" placeholder="LUZ, matrícula, calidad..." autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+</div>
+
+<div id="uploadSection">
+  <div class="upload-zone">
+    <span class="upload-icon">🗄</span>
+    <div class="upload-title">Base de datos · Almacén</div>
+    <div class="upload-sub">Selecciona el archivo <strong>.db</strong> desde iCloud<br>Los datos no salen del dispositivo</div>
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">Cargar archivo .db</button>
+    <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3">
+  </div>
+</div>
+
+<div id="stockContent" style="display:none">
+  <div class="stats-bar" id="statsBar"></div>
+  <div class="filters" id="filtersBar"></div>
+  <div class="divider"></div>
+  <div class="section-label" id="sectionLabel"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<div id="histContent" style="display:none">
+  <div class="stats-bar" id="histStatsBar"></div>
+  <div class="filters" id="histFiltersBar"></div>
+  <div class="divider"></div>
+  <div class="section-label" id="histSectionLabel"></div>
+  <div class="list" id="histList"></div>
+</div>
+
+<div class="tab-bar" id="tabBar">
+  <div class="tab active" id="tabStock" onclick="switchTab('stock')">
+    <span class="tab-icon">📦</span>Stock
+  </div>
+  <div class="tab" id="tabHist" onclick="switchTab('hist')">
+    <span class="tab-icon">🗂</span>Histórico
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-mat" id="mMat"></div>
+      <div class="modal-luz" id="mLuz"></div>
+    </div>
+    <div class="detail-grid" id="mGrid"></div>
+    <button class="btn-close" onclick="document.getElementById('modalBg').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script>
+let db = null;
+let allRows = [], filtered = [];
+let histRows = [], histFiltered = [];
+let activeFilter = 'TODOS', activeHistFilter = 'TODOS';
+let currentTab = 'stock';
+
+const sqlPromise = initSqlJs({ locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}` });
+
+document.getElementById('fileInput').addEventListener('change', e => { if (e.target.files[0]) loadDB(e.target.files[0]); });
+
+async function loadDB(file) {
+  try {
+    const SQL = await sqlPromise;
+    db = new SQL.Database(new Uint8Array(await file.arrayBuffer()));
+    loadData();
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+function loadData() {
+  try {
+    const res = db.exec("SELECT matricula,luz,hilo,calidad,ancho,largo,total,alta,proveedor,precio_m2,venta FROM registros ORDER BY CAST(REPLACE(REPLACE(luz,'.',''),',','.') AS REAL) ASC");
+    if (res.length) {
+      allRows = res[0].values.map(r => Object.fromEntries(res[0].columns.map((c,i) => [c, r[i] ?? '—'])));
+    }
+    const resH = db.exec("SELECT matricula,luz,hilo,calidad,ancho,largo,alta,proveedor,baja,precio_m2 FROM historico ORDER BY CAST(REPLACE(REPLACE(luz,'.',''),',','.') AS REAL) ASC");
+    if (resH.length) {
+      histRows = resH[0].values.map(r => Object.fromEntries(resH[0].columns.map((c,i) => [c, r[i] ?? '—'])));
+    }
+
+    document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('tabBar').classList.add('visible');
+    document.getElementById('searchWrap').style.display = 'block';
+
+    buildFilters();
+    buildHistFilters();
+    switchTab('stock');
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      if (currentTab === 'stock') renderList(search(e.target.value));
+      else renderHistList(searchHist(e.target.value));
+    });
+  } catch(e) { alert('Error al leer datos: ' + e.message); }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('searchInput').value = '';
+  document.getElementById('tabStock').classList.toggle('active', tab === 'stock');
+  document.getElementById('tabHist').classList.toggle('active', tab === 'hist');
+  document.getElementById('stockContent').style.display = tab === 'stock' ? 'block' : 'none';
+  document.getElementById('histContent').style.display = tab === 'hist' ? 'block' : 'none';
+  document.getElementById('headerSub').textContent = tab === 'stock' ? 'Gestión de stock' : 'Histórico';
+  if (tab === 'stock') applyFilter(activeFilter);
+  else applyHistFilter(activeHistFilter);
+}
+
+function buildFilters() {
+  const provs = [...new Set(allRows.map(r => r.proveedor).filter(p => p && p !== '—'))].sort();
+  const bar = document.getElementById('filtersBar');
+  bar.innerHTML = '';
+  ['TODOS', ...provs].forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (p === 'TODOS' ? ' active' : '');
+    chip.textContent = p;
+    chip.onclick = () => { bar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); activeFilter = p; document.getElementById('searchInput').value = ''; applyFilter(p); };
+    bar.appendChild(chip);
+  });
+}
+
+function applyFilter(prov) {
+  activeFilter = prov;
+  filtered = prov === 'TODOS' ? [...allRows] : allRows.filter(r => r.proveedor === prov);
+  const metros = filtered.reduce((s,r) => s + (parseFloat(String(r.total).replace(',','.')) || 0), 0);
+  document.getElementById('totalBadge').textContent = filtered.length + ' rollos';
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-val">${filtered.length}</span><span class="stat-lbl">Rollos</span></div>
+    <div class="stat"><span class="stat-val">${metros.toLocaleString('es-ES',{maximumFractionDigits:0})}</span><span class="stat-lbl">Metros</span></div>
+  `;
+  renderList(filtered);
+}
+
+function search(q) {
+  if (!q.trim()) return filtered;
+  const t = q.toLowerCase();
+  return filtered.filter(r => String(r.luz).toLowerCase().includes(t) || String(r.matricula).includes(t) || String(r.proveedor).toLowerCase().includes(t) || String(r.calidad).toLowerCase().includes(t) || String(r.hilo).toLowerCase().includes(t));
+}
+
+function renderList(rows) {
+  const list = document.getElementById('list');
+  document.getElementById('sectionLabel').textContent = rows.length + ' referencias';
+  if (!rows.length) { list.innerHTML = '<div class="empty">Sin resultados</div>'; return; }
+  list.innerHTML = rows.map(r => `
+    <div class="card" onclick='openModal(${JSON.stringify(r).replace(/'/g,"&#39;")}, false)'>
+      <div class="card-top">
+        <span class="mat">Ref. ${r.matricula}</span>
+        <span class="metros">${r.total}<span> mt</span></span>
+        ${r.venta && r.venta !== '—' && r.venta !== '0,00' ? `<span class="venta-price">${r.venta}<span> €/m²</span></span>` : ''}
+      </div>
+      <div class="luz-val">LUZ ${r.luz}</div>
+      <div class="tags">
+        ${r.hilo !== '—' ? `<span class="tag">Ø ${r.hilo}</span>` : ''}
+        ${r.calidad !== '—' ? `<span class="tag">${r.calidad}</span>` : ''}
+        ${r.ancho !== '—' ? `<span class="tag">${r.ancho}m</span>` : ''}
+        ${r.proveedor !== '—' ? `<span class="tag proveedor">${r.proveedor}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function buildHistFilters() {
+  const provs = [...new Set(histRows.map(r => r.proveedor).filter(p => p && p !== '—'))].sort();
+  const bar = document.getElementById('histFiltersBar');
+  bar.innerHTML = '';
+  ['TODOS', ...provs].forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (p === 'TODOS' ? ' active' : '');
+    chip.textContent = p;
+    chip.onclick = () => { bar.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active')); chip.classList.add('active'); activeHistFilter = p; document.getElementById('searchInput').value = ''; applyHistFilter(p); };
+    bar.appendChild(chip);
+  });
+}
+
+function applyHistFilter(prov) {
+  activeHistFilter = prov;
+  histFiltered = prov === 'TODOS' ? [...histRows] : histRows.filter(r => r.proveedor === prov);
+  document.getElementById('totalBadge').textContent = histFiltered.length + ' refs.';
+  document.getElementById('histStatsBar').innerHTML = `<div class="stat"><span class="stat-val">${histFiltered.length}</span><span class="stat-lbl">Agotados</span></div>`;
+  renderHistList(histFiltered);
+}
+
+function searchHist(q) {
+  if (!q.trim()) return histFiltered;
+  const t = q.toLowerCase();
+  return histFiltered.filter(r => String(r.luz).toLowerCase().includes(t) || String(r.matricula).includes(t) || String(r.proveedor).toLowerCase().includes(t) || String(r.calidad).toLowerCase().includes(t));
+}
+
+function renderHistList(rows) {
+  const list = document.getElementById('histList');
+  document.getElementById('histSectionLabel').textContent = rows.length + ' referencias';
+  if (!rows.length) { list.innerHTML = '<div class="empty">Sin resultados</div>'; return; }
+  list.innerHTML = rows.map(r => `
+    <div class="hist-card" onclick='openModal(${JSON.stringify(r).replace(/'/g,"&#39;")}, true)'>
+      <div class="card-top">
+        <span class="mat">Ref. ${r.matricula}</span>
+        <span class="baja-date">Baja: ${r.baja}</span>
+      </div>
+      <div class="luz-val">LUZ ${r.luz}</div>
+      <div class="tags">
+        ${r.hilo !== '—' ? `<span class="tag">Ø ${r.hilo}</span>` : ''}
+        ${r.calidad !== '—' ? `<span class="tag">${r.calidad}</span>` : ''}
+        ${r.ancho !== '—' ? `<span class="tag">${r.ancho}m</span>` : ''}
+        ${r.proveedor !== '—' ? `<span class="tag proveedor">${r.proveedor}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function openModal(r, isHist) {
+  document.getElementById('mMat').textContent = 'REFERENCIA · ' + r.matricula;
+  document.getElementById('mLuz').textContent = 'LUZ ' + r.luz;
+  document.getElementById('mGrid').innerHTML = isHist ? `
+    <div class="detail-item"><span class="detail-label">Hilo</span><span class="detail-val">Ø ${r.hilo}</span></div>
+    <div class="detail-item"><span class="detail-label">Calidad</span><span class="detail-val">${r.calidad}</span></div>
+    <div class="detail-item"><span class="detail-label">Ancho</span><span class="detail-val">${r.ancho} m</span></div>
+    <div class="detail-item"><span class="detail-label">Largo</span><span class="detail-val">${r.largo} m</span></div>
+    <div class="detail-item"><span class="detail-label">Proveedor</span><span class="detail-val">${r.proveedor}</span></div>
+    <div class="detail-item"><span class="detail-label">Alta</span><span class="detail-val">${r.alta}</span></div>
+    <div class="detail-item full" style="border-left:3px solid var(--muted)">
+      <span class="detail-label">Fecha de baja</span>
+      <span class="detail-val">${r.baja}</span>
+    </div>
+    ${r.precio_m2 && r.precio_m2 !== '—' && r.precio_m2 !== '0,00' ? `<div class="detail-item"><span class="detail-label">Precio m²</span><span class="detail-val">${r.precio_m2} €</span></div>` : ''}
+  ` : `
+    <div class="detail-item full" style="border-left:3px solid var(--success)">
+      <span class="detail-label">Metros disponibles</span>
+      <span class="detail-val big">${r.total} mt</span>
+    </div>
+    <div class="detail-item"><span class="detail-label">Hilo</span><span class="detail-val">Ø ${r.hilo}</span></div>
+    <div class="detail-item"><span class="detail-label">Calidad</span><span class="detail-val">${r.calidad}</span></div>
+    <div class="detail-item"><span class="detail-label">Ancho</span><span class="detail-val">${r.ancho} m</span></div>
+    <div class="detail-item"><span class="detail-label">Largo original</span><span class="detail-val">${r.largo} m</span></div>
+    <div class="detail-item"><span class="detail-label">Proveedor</span><span class="detail-val">${r.proveedor}</span></div>
+    <div class="detail-item"><span class="detail-label">Alta</span><span class="detail-val">${r.alta}</span></div>
+    ${r.precio_m2 && r.precio_m2 !== '—' && r.precio_m2 !== '0,00' ? `<div class="detail-item"><span class="detail-label">Precio coste m²</span><span class="detail-val">${r.precio_m2} €</span></div>` : ''}
+    ${r.venta && r.venta !== '—' && r.venta !== '0,00' ? `<div class="detail-item full" style="border-left:3px solid var(--blue)"><span class="detail-label">Precio venta m²</span><span class="detail-val price">${r.venta} €</span></div>` : ''}
+  `;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg')) document.getElementById('modalBg').classList.remove('open');
+}
+</script>
+</body>
+</html>
