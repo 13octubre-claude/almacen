@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Almacén">
+<title>Almacén · Stock</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #17171b;
+    --surface2: #1e1e24;
+    --border: #2a2a32;
+    --accent: #4a9eff;
+    --accent2: #ff6b4a;
+    --text: #e8e8f0;
+    --muted: #6b6b80;
+    --success: #4aff9e;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 52px 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .logo {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .stock-badge {
+    background: var(--accent);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+
+  .search-wrap {
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  input[type="search"], input[type="text"] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    padding: 12px 14px 12px 42px;
+    outline: none;
+    -webkit-appearance: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--muted); }
+
+  /* CARGA */
+  .upload-zone {
+    margin: 30px 20px;
+    border: 2px dashed var(--border);
+    border-radius: 20px;
+    padding: 50px 20px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .upload-zone.drag { border-color: var(--accent); }
+
+  .upload-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .upload-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .upload-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .btn-upload {
+    background: var(--accent);
+    color: #000;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 32px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  .btn-upload:active { opacity: 0.8; }
+
+  #fileInput { display: none; }
+
+  /* FILTROS */
+  .filters {
+    padding: 12px 20px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+
+  .filter-chip {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 14px;
+    border-radius: 20px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+
+  .filter-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* STATS */
+  .stats-bar {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px 14px;
+  }
+
+  .stat {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent);
+    display: block;
+  }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* LISTA */
+  .list {
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 3px 0 0 3px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .card:active { transform: scale(0.985); border-color: var(--accent); }
+  .card:active::before { opacity: 1; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .mat {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .metros {
+    font-family: var(--mono);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--success);
+  }
+
+  .metros span {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .luz-val {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tag {
+    font-size: 11px;
+    font-family: var(--mono);
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+
+  .tag.proveedor {
+    color: var(--accent2);
+    border-color: rgba(255,107,74,0.3);
+    background: rgba(255,107,74,0.08);
+  }
+
+  /* MODAL DETALLE */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    backdrop-filter: blur(4px);
+    align-items: flex-end;
+  }
+
+  .modal-bg.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 28px 28px 0 0;
+    padding: 28px 24px 50px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 24px;
+  }
+
+  .modal-mat {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .modal-luz {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin-bottom: 20px;
+    line-height: 1;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .detail-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .detail-item.full { grid-column: 1 / -1; }
+
+  .detail-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .detail-val {
+    font-family: var(--mono);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .detail-val.big {
+    font-size: 24px;
+    color: var(--success);
+  }
+
+  .btn-close {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 500;
+    padding: 16px;
+    border-radius: 14px;
+    cursor: pointer;
+  }
+
+  /* EMPTY / LOADING */
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding: 0 20px 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <span class="logo">⬡ Almacén · Stock</span>
+    <span class="stock-badge" id="totalBadge">—</span>
+  </div>
+  <div class="search-wrap" id="searchWrap" style="display:none">
+    <span class="search-icon">⌕</span>
+    <input type="search" id="searchInput" placeholder="LUZ, matrícula, proveedor..." autocomplete="off" autocorrect="off" spellcheck="false">
+  </div>
+</div>
+
+<!-- ZONA CARGA -->
+<div id="uploadSection">
+  <div class="upload-zone" id="dropZone">
+    <span class="upload-icon">🗄</span>
+    <div class="upload-title">Base de datos del almacén</div>
+    <div class="upload-sub">Selecciona el archivo <strong>.db</strong> desde iCloud<br>Tus datos nunca salen del iPhone</div>
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">Abrir archivo .db</button>
+    <input type="file" id="fileInput" accept=".db,.sqlite,.sqlite3">
+  </div>
+</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div id="mainContent" style="display:none">
+  <div class="stats-bar" id="statsBar"></div>
+  <div class="filters" id="filtersBar"></div>
+  <div class="section-label" id="sectionLabel"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-mat" id="mMat"></div>
+    <div class="modal-luz" id="mLuz"></div>
+    <div class="detail-grid" id="mGrid"></div>
+    <button class="btn-close" onclick="document.getElementById('modalBg').classList.remove('open')">Cerrar</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js"></script>
+<script>
+let db = null;
+let allRows = [];
+let filtered = [];
+let activeFilter = 'TODOS';
+
+// SQL.js init
+const sqlPromise = initSqlJs({
+  locateFile: f => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${f}`
+});
+
+// File input
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) loadDB(file);
+});
+
+// Drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) loadDB(file);
+});
+
+async function loadDB(file) {
+  try {
+    const SQL = await sqlPromise;
+    const buf = await file.arrayBuffer();
+    db = new SQL.Database(new Uint8Array(buf));
+    loadData();
+  } catch(e) {
+    alert('Error al leer el archivo: ' + e.message);
+  }
+}
+
+function loadData() {
+  try {
+    const res = db.exec("SELECT matricula, luz, hilo, calidad, ancho, largo, total, alta, proveedor, precio_m2 FROM registros ORDER BY luz ASC");
+    if (!res.length) { alert('Tabla vacía o no encontrada'); return; }
+
+    const cols = res[0].columns;
+    allRows = res[0].values.map(r => {
+      const obj = {};
+      cols.forEach((c, i) => obj[c] = r[i] ?? '—');
+      return obj;
+    });
+
+    document.getElementById('uploadSection').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('searchWrap').style.display = 'block';
+
+    buildFilters();
+    applyFilter('TODOS');
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      renderList(search(e.target.value));
+    });
+
+  } catch(e) {
+    alert('Error al leer datos: ' + e.message);
+  }
+}
+
+function buildFilters() {
+  // Filtros por proveedor
+  const provs = [...new Set(allRows.map(r => r.proveedor).filter(p => p && p !== '—'))].sort();
+  const bar = document.getElementById('filtersBar');
+  bar.innerHTML = '';
+
+  ['TODOS', ...provs].forEach(p => {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip' + (p === 'TODOS' ? ' active' : '');
+    chip.textContent = p;
+    chip.onclick = () => {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      activeFilter = p;
+      document.getElementById('searchInput').value = '';
+      applyFilter(p);
+    };
+    bar.appendChild(chip);
+  });
+}
+
+function applyFilter(prov) {
+  filtered = prov === 'TODOS' ? [...allRows] : allRows.filter(r => r.proveedor === prov);
+  renderStats(filtered);
+  renderList(filtered);
+}
+
+function search(q) {
+  if (!q.trim()) return filtered;
+  const t = q.toLowerCase().replace(',', '.');
+  return filtered.filter(r =>
+    String(r.luz).toLowerCase().includes(t) ||
+    String(r.matricula).includes(t) ||
+    String(r.proveedor).toLowerCase().includes(t) ||
+    String(r.calidad).toLowerCase().includes(t) ||
+    String(r.hilo).toLowerCase().includes(t)
+  );
+}
+
+function renderStats(rows) {
+  const totalMetros = rows.reduce((s, r) => {
+    const v = parseFloat(String(r.total).replace(',', '.')) || 0;
+    return s + v;
+  }, 0);
+
+  document.getElementById('totalBadge').textContent = rows.length + ' rollos';
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat">
+      <span class="stat-val">${rows.length}</span>
+      <span class="stat-lbl">Rollos</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val">${totalMetros.toLocaleString('es-ES', {maximumFractionDigits:0})}</span>
+      <span class="stat-lbl">Metros tot.</span>
+    </div>
+  `;
+}
+
+function renderList(rows) {
+  const list = document.getElementById('list');
+  const label = document.getElementById('sectionLabel');
+  label.textContent = rows.length + ' resultados';
+
+  if (!rows.length) {
+    list.innerHTML = '<div class="empty">Sin resultados</div>';
+    return;
+  }
+
+  list.innerHTML = rows.map((r, i) => `
+    <div class="card" onclick="openModal(${i}, ${JSON.stringify(r).replace(/"/g, '&quot;')})">
+      <div class="card-top">
+        <span class="mat">#${r.matricula}</span>
+        <span class="metros">${r.total}<span> mt</span></span>
+      </div>
+      <div class="luz-val">LUZ ${r.luz}</div>
+      <div class="tags">
+        ${r.hilo !== '—' ? `<span class="tag">Ø ${r.hilo}</span>` : ''}
+        ${r.calidad !== '—' ? `<span class="tag">${r.calidad}</span>` : ''}
+        ${r.ancho !== '—' ? `<span class="tag">${r.ancho} m ancho</span>` : ''}
+        ${r.proveedor !== '—' ? `<span class="tag proveedor">${r.proveedor}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function openModal(i, r) {
+  document.getElementById('mMat').textContent = 'MATRÍCULA #' + r.matricula;
+  document.getElementById('mLuz').textContent = 'LUZ ' + r.luz;
+  document.getElementById('mGrid').innerHTML = `
+    <div class="detail-item full">
+      <span class="detail-label">Metros disponibles</span>
+      <span class="detail-val big">${r.total} mt</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Hilo</span>
+      <span class="detail-val">Ø ${r.hilo}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Calidad</span>
+      <span class="detail-val">${r.calidad}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Ancho</span>
+      <span class="detail-val">${r.ancho} m</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Largo original</span>
+      <span class="detail-val">${r.largo} m</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Proveedor</span>
+      <span class="detail-val">${r.proveedor}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Alta</span>
+      <span class="detail-val">${r.alta}</span>
+    </div>
+    ${r.precio_m2 && r.precio_m2 !== '—' && r.precio_m2 !== '0,00' ? `
+    <div class="detail-item">
+      <span class="detail-label">Precio m²</span>
+      <span class="detail-val">${r.precio_m2} €</span>
+    </div>` : ''}
+  `;
+  document.getElementById('modalBg').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalBg'))
+    document.getElementById('modalBg').classList.remove('open');
+}
+</script>
+</body>
+</html>
